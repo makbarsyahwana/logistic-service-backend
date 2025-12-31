@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum OrderStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  CANCELED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  orders    Order[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  trackingNumber String      @unique @map("tracking_number")
+  senderName     String      @map("sender_name")
+  recipientName  String      @map("recipient_name")
+  origin         String
+  destination    String
+  status         OrderStatus @default(PENDING)
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([trackingNumber])
+  @@index([status])
+  @@index([senderName])
+  @@index([recipientName])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("orders")
+}
