@@ -33,7 +33,7 @@ dev:
 # Production mode - starts all services including app
 prod:
 	@echo "Starting production environment..."
-	docker-compose --env-file .env.docker up -d --build
+	docker-compose up -d --build
 	@echo ""
 	@echo "Production services started!"
 	@echo "  API:        http://localhost:3000"
@@ -46,7 +46,7 @@ build:
 
 # Start services
 up:
-	docker-compose --env-file .env.docker up -d
+	docker-compose up -d
 
 # Stop services
 down:

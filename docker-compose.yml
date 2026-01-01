@@ -6,16 +6,13 @@ services:
     image: postgres:16-alpine
     container_name: logistics-db
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-logistics_db}
+    env_file: .env
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-logistics_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-logistics_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,9 +24,8 @@ services:
     image: dpage/pgadmin4:latest
     container_name: logistics-pgadmin
     restart: unless-stopped
+    env_file: .env
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@logistics.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
       - "${PGADMIN_PORT:-5050}:80"
@@ -48,16 +44,11 @@ services:
       dockerfile: Dockerfile
     container_name: logistics-api
     restart: unless-stopped
+    env_file: .env
     environment:
-      DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-logistics_db}?schema=public
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
-      PORT: 3000
-      NODE_ENV: ${NODE_ENV:-production}
-      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-logistics_db}?schema=public
       REDIS_HOST: redis
-      REDIS_PORT: 6379
-      CACHE_TTL: ${CACHE_TTL:-300}
+      PORT: 3000
     ports:
       - "${APP_PORT:-3000}:3000"
     depends_on:
@@ -73,6 +64,7 @@ services:
     image: redis:7-alpine
     container_name: logistics-redis
     restart: unless-stopped
+    env_file: .env
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:

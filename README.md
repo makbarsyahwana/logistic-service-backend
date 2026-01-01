@@ -37,7 +37,7 @@ The fastest way to get started:
 make prod
 
 # Or using docker-compose directly
-docker-compose --env-file .env.docker up -d --build
+docker-compose up -d --build
 ```
 
 Services will be available at:
