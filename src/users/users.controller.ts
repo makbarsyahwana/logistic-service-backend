@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -55,7 +56,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID (Admin only)' })
   @ApiResponse({ status: 200, description: 'User details' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.usersService.findById(id);
   }
 
@@ -64,7 +65,10 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user role (Admin only)' })
   @ApiResponse({ status: 200, description: 'User role updated' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  updateRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  updateRole(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
     return this.usersService.updateRole(id, updateRoleDto.role);
   }
 
@@ -73,7 +77,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Delete user (Admin only)' })
   @ApiResponse({ status: 200, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.usersService.delete(id);
   }
 }

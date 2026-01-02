@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -13,12 +14,33 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
-  // Security middleware
+  const trustProxyRaw = (process.env.TRUST_PROXY || '').toLowerCase();
+  if (trustProxyRaw === '1' || trustProxyRaw === 'true') {
+    const instance = app.getHttpAdapter().getInstance();
+    if (typeof instance?.set === 'function') {
+      instance.set('trust proxy', 1);
+    }
+  }
+
   app.use(helmet());
+
+  const bodyLimit = process.env.BODY_LIMIT || '100kb';
+  app.use(json({ limit: bodyLimit }));
+  app.use(urlencoded({ extended: true, limit: bodyLimit }));
+
+  const corsOriginRaw = (process.env.CORS_ORIGIN || '*').trim();
+  const isWildcardOrigin = corsOriginRaw === '*';
+  const corsOrigin = isWildcardOrigin
+    ? '*'
+    : corsOriginRaw
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
+    credentials: !isWildcardOrigin,
   });
 
   // Global interceptors

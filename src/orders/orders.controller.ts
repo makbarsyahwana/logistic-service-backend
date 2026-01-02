@@ -3,10 +3,12 @@ import {
   Get,
   Post,
   Patch,
+  BadRequestException,
   Param,
   Body,
   Query,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -72,7 +74,11 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Order details' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   track(@Param('trackingNumber') trackingNumber: string) {
-    return this.ordersService.track(trackingNumber);
+    const normalized = trackingNumber.trim().toUpperCase();
+    if (!/^TRK-[0-9A-Z]+-[0-9A-Z]{6}$/.test(normalized) || normalized.length > 64) {
+      throw new BadRequestException('Invalid tracking number');
+    }
+    return this.ordersService.track(normalized);
   }
 
   @Get(':id')
@@ -81,7 +87,10 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get order by ID' })
   @ApiResponse({ status: 200, description: 'Order details' })
   @ApiResponse({ status: 404, description: 'Order not found' })
-  findOne(@Param('id') id: string, @CurrentUser() user: UserPayload) {
+  findOne(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @CurrentUser() user: UserPayload,
+  ) {
     return this.ordersService.findOne(id, user.id, user.role);
   }
 
@@ -94,7 +103,7 @@ export class OrdersController {
   @ApiResponse({ status: 400, description: 'Invalid status transition' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   updateStatus(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateStatusDto: UpdateOrderStatusDto,
     @CurrentUser() user: UserPayload,
   ) {
@@ -108,7 +117,10 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Order canceled' })
   @ApiResponse({ status: 400, description: 'Order cannot be canceled' })
   @ApiResponse({ status: 404, description: 'Order not found' })
-  cancel(@Param('id') id: string, @CurrentUser() user: UserPayload) {
+  cancel(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @CurrentUser() user: UserPayload,
+  ) {
     return this.ordersService.cancel(id, user.id, user.role);
   }
 }
