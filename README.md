@@ -67,13 +67,13 @@ For local development, start only the database services:
 make dev
 
 # Run migrations
-npx prisma migrate dev
+bunx prisma migrate dev
 
 # Seed the database
-npm run prisma:seed
+bun run prisma:seed
 
 # Start the app locally
-npm run start:dev
+bun run start:dev
 ```
 
 ## Installation (Without Docker)
@@ -81,12 +81,12 @@ npm run start:dev
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd logistic-service-backend
+cd logistic-service-backend/service-backend
 ```
 
 2. **Install dependencies**
 ```bash
-npm install
+bun install
 ```
 
 3. **Set up environment variables**
@@ -105,17 +105,17 @@ NODE_ENV=development
 
 4. **Create database and run migrations**
 ```bash
-npx prisma migrate dev
+bunx prisma migrate dev
 ```
 
 5. **Generate Prisma client**
 ```bash
-npx prisma generate
+bunx prisma generate
 ```
 
 6. **Seed the database (optional)**
 ```bash
-npm run prisma:seed
+bun run prisma:seed
 ```
 
 Default users:
@@ -126,11 +126,11 @@ Default users:
 
 ```bash
 # Development
-npm run start:dev
+bun run start:dev
 
 # Production
-npm run build
-npm run start:prod
+bun run build
+bun run start:prod
 ```
 
 ## API Documentation
