@@ -46,7 +46,13 @@ export class OrdersService {
   }
 
   async findAll(filterDto: FilterOrdersDto, userId: string, userRole: Role) {
-    const { status, senderName, recipientName, page = 1, limit = 10 } = filterDto;
+    const {
+      status,
+      senderName,
+      recipientName,
+      page = 1,
+      limit = 10,
+    } = filterDto;
 
     const where = buildOrderWhereClause({
       userId,
@@ -184,9 +190,7 @@ export class OrdersService {
 
     // Can only cancel pending orders
     if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException(
-        'Only pending orders can be canceled',
-      );
+      throw new BadRequestException('Only pending orders can be canceled');
     }
 
     const canceled = await this.prisma.order.update({

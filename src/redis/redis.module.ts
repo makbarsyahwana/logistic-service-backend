@@ -27,7 +27,8 @@ interface RedisOptions {
         let port = configService.get<number>('REDIS_PORT') || 6379;
         let password = configService.get<string>('REDIS_PASSWORD');
         let tls =
-          (configService.get<string>('REDIS_TLS') || '').toLowerCase() === 'true';
+          (configService.get<string>('REDIS_TLS') || '').toLowerCase() ===
+          'true';
 
         if (redisUrl) {
           try {

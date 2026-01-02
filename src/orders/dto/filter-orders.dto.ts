@@ -1,5 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, IsInt, Min, Max, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus } from '@prisma/client';
 
@@ -18,7 +26,9 @@ export class FilterOrdersDto {
   @MaxLength(100)
   senderName?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by recipient name (partial match)' })
+  @ApiPropertyOptional({
+    description: 'Filter by recipient name (partial match)',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(100)

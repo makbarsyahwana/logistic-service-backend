@@ -57,7 +57,11 @@ export class OrdersController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all orders with filters' })
   @ApiResponse({ status: 200, description: 'List of orders' })
-  @ApiQuery({ name: 'status', required: false, enum: ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'CANCELED'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'CANCELED'],
+  })
   @ApiQuery({ name: 'senderName', required: false })
   @ApiQuery({ name: 'recipientName', required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -75,7 +79,10 @@ export class OrdersController {
   @ApiResponse({ status: 404, description: 'Order not found' })
   track(@Param('trackingNumber') trackingNumber: string) {
     const normalized = trackingNumber.trim().toUpperCase();
-    if (!/^TRK-[0-9A-Z]+-[0-9A-Z]{6}$/.test(normalized) || normalized.length > 64) {
+    if (
+      !/^TRK-[0-9A-Z]+-[0-9A-Z]{6}$/.test(normalized) ||
+      normalized.length > 64
+    ) {
       throw new BadRequestException('Invalid tracking number');
     }
     return this.ordersService.track(normalized);
@@ -107,7 +114,12 @@ export class OrdersController {
     @Body() updateStatusDto: UpdateOrderStatusDto,
     @CurrentUser() user: UserPayload,
   ) {
-    return this.ordersService.updateStatus(id, updateStatusDto, user.id, user.role);
+    return this.ordersService.updateStatus(
+      id,
+      updateStatusDto,
+      user.id,
+      user.role,
+    );
   }
 
   @Patch(':id/cancel')

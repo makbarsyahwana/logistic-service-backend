@@ -37,7 +37,10 @@ describe('AuthService', () => {
     };
 
     const jwtService = { sign: jest.fn(() => 'token') };
-    const service = new AuthServiceClass(usersService as any, jwtService as any);
+    const service = new AuthServiceClass(
+      usersService as any,
+      jwtService as any,
+    );
 
     await expect(
       service.register({ email: 'a@a.com', password: 'pass123', name: 'A' }),
@@ -56,7 +59,10 @@ describe('AuthService', () => {
     };
 
     const jwtService = { sign: jest.fn(() => 'token') };
-    const service = new AuthServiceClass(usersService as any, jwtService as any);
+    const service = new AuthServiceClass(
+      usersService as any,
+      jwtService as any,
+    );
 
     const result = await service.register({
       email: 'a@a.com',
@@ -76,7 +82,10 @@ describe('AuthService', () => {
       findByEmail: jest.fn(async () => null),
     };
     const jwtService = { sign: jest.fn(() => 'token') };
-    const service = new AuthServiceClass(usersService as any, jwtService as any);
+    const service = new AuthServiceClass(
+      usersService as any,
+      jwtService as any,
+    );
 
     await expect(
       service.login({ email: 'a@a.com', password: 'pass123' }),
@@ -96,7 +105,10 @@ describe('AuthService', () => {
       })),
     };
     const jwtService = { sign: jest.fn(() => 'token') };
-    const service = new AuthServiceClass(usersService as any, jwtService as any);
+    const service = new AuthServiceClass(
+      usersService as any,
+      jwtService as any,
+    );
 
     await expect(
       service.login({ email: 'a@a.com', password: 'wrong' }),
@@ -114,7 +126,10 @@ describe('AuthService', () => {
       })),
     };
     const jwtService = { sign: jest.fn(() => 'token') };
-    const service = new AuthServiceClass(usersService as any, jwtService as any);
+    const service = new AuthServiceClass(
+      usersService as any,
+      jwtService as any,
+    );
 
     const result = await service.login({ email: 'a@a.com', password: 'pass' });
 

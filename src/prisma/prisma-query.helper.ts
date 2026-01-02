@@ -1,9 +1,10 @@
 import { Prisma } from '@prisma/client';
 
-const containsInsensitive = (value: string) => ({
-  contains: value,
-  mode: 'insensitive',
-} as const);
+const containsInsensitive = (value: string) =>
+  ({
+    contains: value,
+    mode: 'insensitive',
+  }) as const;
 
 const buildCreatedAtRange = (dateFrom?: Date, dateTo?: Date) => {
   if (!dateFrom && !dateTo) return undefined;
@@ -134,7 +135,6 @@ export function buildOrderWhereClause(
 
   return where;
 }
-
 
 export interface UserWhereParams {
   email?: string;
