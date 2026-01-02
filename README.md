@@ -23,65 +23,145 @@ A RESTful API for managing shipment orders built with NestJS, Prisma, and Postgr
 
 ## Prerequisites
 
+- Docker & Docker Compose
+
+If you want to run without Docker:
+
 - Node.js >= 18
 - PostgreSQL >= 14
-- npm or yarn
-- Docker & Docker Compose (for containerized deployment)
+- bun
 
 ## Quick Start with Docker
 
-The fastest way to get started:
+Docker Compose is intended for production-style deployments (single `docker-compose.yml`).
+
+1. **Create environment file**
 
 ```bash
-# Start all services (app + database + pgAdmin + Redis)
-make prod
+cp .env.example .env
+```
 
-# Or using docker-compose directly
+At minimum, set these variables in `.env`:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=logistics_db
+
+# Host ports exposed by docker-compose.yml
+APP_PORT=3000
+DB_PORT=5432
+REDIS_PORT=6379
+
+# For running the API locally (without Docker), connect via the exposed ports
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/logistics_db?schema=public
+REDIS_HOST=localhost
+
+JWT_SECRET=change-me-to-a-long-random-secret
+JWT_EXPIRATION=24h
+
+PGADMIN_DEFAULT_EMAIL=admin@logistics.com
+PGADMIN_DEFAULT_PASSWORD=admin123
+PGADMIN_PORT=5050
+```
+
+2. **Start all services**
+
+```bash
 docker-compose up -d --build
 ```
 
 Services will be available at:
-- **API**: http://localhost:3000
+- **API**: http://localhost:3000 (when `APP_PORT=3000`)
 - **Swagger Docs**: http://localhost:3000/api/docs
-- **pgAdmin**: http://localhost:5050 (admin@logistics.com / admin123)
+- **pgAdmin**: http://localhost:5050 (when `PGADMIN_PORT=5050`)
+
+Notes:
+
+- **Postgres and Redis are exposed to the host** via `DB_PORT` / `REDIS_PORT`.
+- **pgAdmin is bound to localhost** (`127.0.0.1`) by default.
+- Change the exposed API port by setting `APP_PORT`. Example: `APP_PORT=8080` exposes the app on `http://localhost:8080`.
+- The `app` container uses Docker-internal hosts (`postgres`, `redis`) via `docker-compose.yml` overrides, even if your `.env` uses `localhost` for local development.
+
+## CI/CD (Cloud agnostic)
+
+This repository includes:
+
+- `CI` workflow (`.github/workflows/ci.yml`) for checks only (format, lint, tests, build)
+- `Release` workflow (`.github/workflows/release.yml`) triggered manually to build/push Docker images to GHCR and optionally deploy over SSH
+
+### Required GitHub Environment secrets
+
+Create GitHub Environments named `development`, `staging`, and `production`, then configure these secrets per environment:
+
+- **DEPLOY_HOST**: Hostname/IP of your server
+- **DEPLOY_USER**: SSH username
+- **DEPLOY_SSH_PRIVATE_KEY**: Private key used by GitHub Actions (recommend a dedicated deploy key)
+- **DEPLOY_COMMAND**: Shell commands executed on the server to perform deployment
+
+Optional:
+
+- **DEPLOY_PORT**: SSH port (default: `22`)
+- **DEPLOY_KNOWN_HOSTS**: Contents of a `known_hosts` entry for strict host verification (recommended). If not provided, the workflow will use `ssh-keyscan`.
+- **DEPLOY_REGISTRY_USERNAME**: Registry username for pulling private images (optional)
+- **DEPLOY_REGISTRY_TOKEN**: Registry token/password for pulling private images (optional)
+
+### Example DEPLOY_COMMAND (Docker Compose on any VM)
+
+This example assumes your server already has:
+
+- Docker + Docker Compose installed
+- A deployment directory containing a `docker-compose.yml` that runs this app image
+
+Example `DEPLOY_COMMAND`:
+
+```sh
+set -euo pipefail
+
+APP_DIR=/opt/logistics-api
+cd "$APP_DIR"
+
+# Optional: authenticate to a registry (recommended if your image is private)
+if [ -n "${DEPLOY_REGISTRY_TOKEN:-}" ] && [ -n "${DEPLOY_REGISTRY_USERNAME:-}" ]; then
+  echo "$DEPLOY_REGISTRY_TOKEN" | docker login ghcr.io -u "$DEPLOY_REGISTRY_USERNAME" --password-stdin
+fi
+
+# Pull the exact image built by CI for this environment
+docker pull "$IMAGE_REF"
+
+# If your compose file references an image, update it via env or override. Common pattern:
+# image: ${IMAGE_REF}
+export IMAGE_REF
+
+docker compose up -d
+docker image prune -f
+```
+
+Your `DEPLOY_COMMAND` can also trigger migrations explicitly (if you want) before restarting the app.
 
 ### Docker Commands
 
 ```bash
-make dev        # Start only DB services (for local development)
-make prod       # Start all services (production)
-make down       # Stop all services
-make logs       # View logs
-make clean      # Remove all containers and volumes
-make migrate    # Run database migrations
-make seed       # Seed the database
-make db-shell   # Open PostgreSQL shell
+docker-compose up -d --build                                # Start all services (app + db + pgAdmin + redis)
+docker-compose down                                        # Stop all services
+docker-compose logs -f                                     # View logs
+docker-compose down -v --rmi all --remove-orphans          # Clean containers, volumes, and images
+
+docker-compose exec app bunx prisma migrate deploy          # Run database migrations
+docker-compose exec app bunx prisma db seed                 # Seed the database
+
+docker-compose exec app sh                                  # Open shell in app container
+docker-compose exec postgres psql -U postgres -d logistics_db # Open PostgreSQL shell
 ```
 
-### Development with Docker
-
-For local development, start only the database services:
-
-```bash
-# Start PostgreSQL, pgAdmin, and Redis
-make dev
-
-# Run migrations
-bunx prisma migrate dev
-
-# Seed the database
-bun run prisma:seed
-
-# Start the app locally
-bun run start:dev
-```
+Docker is intentionally kept production-oriented. For local development, use the "Installation (Without Docker)" section below.
 
 ## Installation (Without Docker)
 
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd logistic-service-backend/service-backend
+cd logistic-service-backend
 ```
 
 2. **Install dependencies**
@@ -99,6 +179,8 @@ Edit `.env` with your configuration:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/logistics_db?schema=public"
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRATION=24h
+REDIS_HOST=localhost
+REDIS_PORT=6379
 PORT=3000
 NODE_ENV=development
 ```
