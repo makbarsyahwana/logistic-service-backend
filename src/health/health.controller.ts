@@ -15,14 +15,14 @@ export class HealthController {
   }
 
   @Get('live')
-  @ApiOperation({ summary: 'Liveness probe for Kubernetes' })
+  @ApiOperation({ summary: 'Liveness' })
   @ApiResponse({ status: 200, description: 'Service is alive' })
   async checkLiveness() {
     return this.healthService.checkLiveness();
   }
 
   @Get('ready')
-  @ApiOperation({ summary: 'Readiness probe for Kubernetes' })
+  @ApiOperation({ summary: 'Readiness' })
   @ApiResponse({ status: 200, description: 'Service readiness status' })
   async checkReadiness() {
     return this.healthService.checkReadiness();
